@@ -8,7 +8,10 @@ from .contest import solve
 
 
 def load(data):
-    return {"data": "empty"}
+    lines = data[1:]
+    return {
+        "lines": lines,
+        }
 
 
 if __name__ == "__main__":
