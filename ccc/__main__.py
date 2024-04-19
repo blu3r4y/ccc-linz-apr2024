@@ -8,10 +8,10 @@ from .contest import solve
 
 
 def load(data):
-    lines = data[1:]
+    paths = data[1:]
     return {
-        "lines": lines,
-        }
+        "paths": paths,
+    }
 
 
 if __name__ == "__main__":
