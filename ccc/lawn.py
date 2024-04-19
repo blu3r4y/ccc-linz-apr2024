@@ -1,15 +1,15 @@
 from typing import List, Literal, Optional, Tuple, Set
 from loguru import logger as log
 
-Direction = Literal["W", "A", "S", "D"]
+from .salesman import exhaustive_salesman, _bounded_grid_successor
+from .gridutils import Direction, move_to, path_to_directions
 
 
 class Lawn:
-    def __init__(self, width, height, grid, path):
+    def __init__(self, width, height, grid):
         self.width: int = width
         self.height: int = height
         self.grid: List[List[str]] = grid
-        self.path: List[Direction] = path
 
         self.tree: Optional[Tuple[complex]] = None
         self.init_lawn()
@@ -33,6 +33,26 @@ class Lawn:
         positions.remove(self.tree)
         return positions
 
+    def find_path(self):
+        cities = self.get_valid_positions()
+        tl, br = Lawn._get_corners_of_cell_set(cities)
+        succ = _bounded_grid_successor(self.width, self.height, {self.tree}, tl)
+        path = exhaustive_salesman(cities=cities, start=0, successor_fn=succ)
+        if path is None:
+            path = exhaustive_salesman(cities=cities, start=self.tree+1j, successor_fn=succ)
+        if path is None:
+            path = exhaustive_salesman(cities=cities, start=self.tree-1j, successor_fn=succ)
+        if path is None:
+            path = exhaustive_salesman(cities=cities, start=self.tree+1, successor_fn=succ)
+        if path is None:
+            path = exhaustive_salesman(cities=cities, start=self.tree-1, successor_fn=succ)
+        if path is None:
+            path = exhaustive_salesman(cities=cities, start=br, successor_fn=succ)
+        log.success(f"found path: {path}")
+        directions = path_to_directions(path)
+        log.info(f"transformed path to directions: {directions}")
+        return directions
+
     def is_path_valid(self, path: List[Direction]) -> bool:
         # must fit the lawn size
         w, h = Lawn._get_enclosed_rectangle_size_of_path(path)
@@ -44,7 +64,7 @@ class Lawn:
         visited = {xy}
 
         for dir in path:
-            xy = Lawn.move_to(xy, dir)
+            xy = move_to(xy, dir)
 
             # must not visit any cell twice
             if xy in visited:
@@ -110,7 +130,7 @@ class Lawn:
         xmax, ymax = 0, 0
 
         for dir in path:
-            xy = Lawn.move_to(xy, dir)
+            xy = move_to(xy, dir)
 
             xmin = min(xmin, xy.real)
             ymin = min(ymin, xy.imag)
@@ -121,15 +141,3 @@ class Lawn:
         height = ymax - ymin + 1
 
         return width, height
-
-    @staticmethod
-    def move_to(pos: complex, dir: Direction) -> complex:
-        match dir:
-            case "W":
-                return pos - 1j
-            case "A":
-                return pos - 1
-            case "S":
-                return pos + 1j
-            case "D":
-                return pos + 1

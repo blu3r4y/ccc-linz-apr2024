@@ -22,8 +22,9 @@ def load(data):
     for _ in range(number_of_lawns):
         lawn_width, lawn_height = lmap(int, data[si].split(" "))
         grid = data[si + 1 : si + 1 + lawn_height]
-        path = data[si + 1 + lawn_height]
-        si += 2 + lawn_height
+        # path = data[si + 1 + lawn_height]
+        path = None
+        si += 1 + lawn_height
         lawns.append(LawnDto(lawn_width, lawn_height, grid, path))
 
     return {
@@ -35,7 +36,8 @@ if __name__ == "__main__":
     base_path = Path("data")
     level = infer_current_level(base_path)
     quests = infer_quests_for_level(base_path, level)
-
+    # quests = ["1"]
+    
     for quest in quests:
         input_file = base_path / f"level{level}_{quest}.in"
         output_file = input_file.with_suffix(".out")
