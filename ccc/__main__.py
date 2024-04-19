@@ -1,16 +1,33 @@
 from pprint import pprint
 from pathlib import Path
+from funcy import lmap
+from collections import namedtuple
 
 from loguru import logger as log
 
 from .utils import infer_current_level, infer_quests_for_level
 from .contest import solve
 
+LawnDto = namedtuple("Lawn", ["width", "height", "grid", "path"])
+
 
 def load(data):
-    paths = data[1:]
+    si = 0
+
+    number_of_lawns = int(data[si])
+    si += 1
+
+    # parse each lawn
+    lawns = []
+    for _ in range(number_of_lawns):
+        lawn_width, lawn_height = lmap(int, data[si].split(" "))
+        grid = data[si + 1 : si + 1 + lawn_height]
+        path = data[si + 1 + lawn_height]
+        si += 2 + lawn_height
+        lawns.append(LawnDto(lawn_width, lawn_height, grid, path))
+
     return {
-        "paths": paths,
+        "lawns": lawns,
     }
 
 
